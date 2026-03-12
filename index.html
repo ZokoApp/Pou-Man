@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<title>Pac Money</title>
+
+<style>
+
+*{
+box-sizing:border-box;
+touch-action:manipulation;
+user-select:none;
+}
+
+body{
+margin:0;
+background:#111827;
+color:white;
+font-family:sans-serif;
+overflow:hidden;
+display:flex;
+flex-direction:column;
+align-items:center;
+}
+
+.topbar{
+
+display:flex;
+gap:20px;
+padding:10px;
+font-size:18px;
+
+}
+
+canvas{
+
+background:#07111f;
+border:4px solid #38bdf8;
+border-radius:15px;
+
+}
+
+.controls{
+
+margin-top:20px;
+display:grid;
+grid-template-columns:80px 80px 80px;
+grid-template-rows:70px 70px;
+gap:10px;
+
+}
+
+button{
+
+font-size:28px;
+border:none;
+border-radius:15px;
+background:#2563eb;
+color:white;
+
+}
+
+.up{grid-column:2}
+.left{grid-column:1}
+.down{grid-column:2}
+.right{grid-column:3}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="topbar">
+
+<div id="money">Dinero: 0</div>
+<div id="goal">Meta: 0 / 0</div>
+
+</div>
+
+<canvas id="game" width="420" height="420"></canvas>
+
+<div class="controls">
+
+<button class="up" id="up">⬆️</button>
+<button class="left" id="left">⬅️</button>
+<button class="down" id="down">⬇️</button>
+<button class="right" id="right">➡️</button>
+
+</div>
+
+<script>
+
+const canvas=document.getElementById("game")
+const ctx=canvas.getContext("2d")
+
+const TILE=35
+const ROWS=12
+const COLS=12
+
+let score=0
+let total=0
+
+const mapTemplate=[
+
+"############",
+"#....#.....#",
+"#.##.#.###.#",
+"#.$..#...$.#",
+"#.##.###.#.#",
+"#....P....##",
+"####.###...#",
+"#.$....#.$.#",
+"#.###.#.##.#",
+"#.....#....#",
+"#.$.###.$..#",
+"############"
+
+]
+
+let map=[]
+let player={row:0,col:0}
+
+let dir={row:0,col:0}
+
+const playerImg=new Image()
+playerImg.src="p.jpeg"
+
+function init(){
+
+map=mapTemplate.map(r=>r.split(""))
+
+score=0
+total=0
+
+for(let r=0;r<ROWS;r++){
+
+for(let c=0;c<COLS;c++){
+
+if(map[r][c]=="P"){
+
+player.row=r
+player.col=c
+map[r][c]=" "
+
+}
+
+if(map[r][c]=="$") total++
+
+}
+
+}
+
+updateUI()
+
+}
+
+function updateUI(){
+
+document.getElementById("money").innerText="Dinero: "+score*10
+document.getElementById("goal").innerText="Meta: "+score+" / "+total
+
+}
+
+function draw(){
+
+ctx.clearRect(0,0,canvas.width,canvas.height)
+
+for(let r=0;r<ROWS;r++){
+
+for(let c=0;c<COLS;c++){
+
+let x=c*TILE
+let y=r*TILE
+
+if(map[r][c]=="#"){
+
+ctx.fillStyle="#2563eb"
+ctx.fillRect(x+4,y+4,TILE-8,TILE-8)
+
+}else{
+
+ctx.fillStyle="#0b1a2b"
+ctx.fillRect(x+2,y+2,TILE-4,TILE-4)
+
+}
+
+if(map[r][c]=="$"){
+
+ctx.font="22px Arial"
+ctx.textAlign="center"
+ctx.textBaseline="middle"
+ctx.fillText("💰",x+TILE/2,y+TILE/2)
+
+}
+
+}
+
+}
+
+ctx.imageSmoothingEnabled = true;
+
+const size = TILE * 1.2;
+
+ctx.drawImage(
+  playerImg,
+  player.col * TILE - TILE * 0.1,
+  player.row * TILE - TILE * 0.1,
+  size,
+  size
+);
+
+}
+
+function move(){
+
+let nr=player.row+dir.row
+let nc=player.col+dir.col
+
+if(map[nr][nc]!="#"){
+
+player.row=nr
+player.col=nc
+
+if(map[nr][nc]=="$"){
+
+map[nr][nc]=" "
+score++
+updateUI()
+
+}
+
+}
+
+}
+
+function loop(){
+
+move()
+draw()
+requestAnimationFrame(loop)
+
+}
+
+document.getElementById("up").ontouchstart=()=>dir={row:-1,col:0}
+document.getElementById("down").ontouchstart=()=>dir={row:1,col:0}
+document.getElementById("left").ontouchstart=()=>dir={row:0,col:-1}
+document.getElementById("right").ontouchstart=()=>dir={row:0,col:1}
+
+init()
+loop()
+
+</script>
+
+</body>
+</html>
